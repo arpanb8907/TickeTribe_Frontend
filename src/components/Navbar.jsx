@@ -1,7 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle, FaBars } from "react-icons/fa";
+import { useState } from "react";
+import SignIn from "./SignIn";
 
 const Navbar = () => {
+
+    
+    const [showmodal,setshowmodal] = useState(false);
+    const toggle_modal = ()=>{
+        setshowmodal(true);
+    }
   return (
     <nav className="bg-gray-900 text-white fixed top-0 left-0 w-full z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
@@ -19,13 +27,16 @@ const Navbar = () => {
           <Link to="/trains" className="hover:text-red-500 transition">Trains</Link>
           <Link to="/sports" className="hover:text-red-500 transition">Sports</Link>
           <Link to="/concerts" className="hover:text-red-500 transition">Concerts</Link>
+          <Link to="/buses" className="hover:text-red-500 transition">Buses</Link>
         </div>
 
         {/* Sign In & Mobile Menu */}
         <div className="flex items-center space-x-4">
-          <button className="hidden md:flex px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition">
+          <button className="hidden md:flex px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition" onClick={toggle_modal}>
             Sign In
           </button>
+
+          <SignIn isOpen={showmodal} onClose={()=>setshowmodal(false)}/>
 
           {/* User Icon for Mobile */}
           <FaUserCircle className="text-2xl text-gray-300 md:hidden cursor-pointer hover:text-white transition" />
