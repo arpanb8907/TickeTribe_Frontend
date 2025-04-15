@@ -1,10 +1,61 @@
-import React from "react";
+import React, { useState,useRef } from "react";
 import { IoClose } from "react-icons/io5";
+import axios from "axios";
 
-export default function Otpmodal({isOpen,onClose}) {
+export default function Otpmodal({ isOpen, onClose, phone_no }) {
+  const [inputs, setinputs] = useState(Array(6).fill(""));
+  const [message, setmessage] = useState("");
+  const inputsRef = useRef([]);
 
-    if(!isOpen) return null;
-    
+  const API_BASE_URL =
+    process.env.NODE_ENV === "production"
+      ? process.env.REACT_APP_PRODUCTION_API_URL
+      : process.env.REACT_APP_API_BASE_URL;
+
+      const handleinputchange = (index, value) => {
+        const newinputs = [...inputs];
+        if (/^\d?$/.test(value)) { // allow only single digit
+          newinputs[index] = value;
+          setinputs(newinputs);
+      
+          // Auto focus next box
+          if (value && index < inputsRef.current.length - 1) {
+            inputsRef.current[index + 1].focus();
+          }
+        }
+      };
+      
+      const handleKeyDown = (index, e) => {
+        if (e.key === "Backspace" && !inputs[index] && index > 0) {
+          inputsRef.current[index - 1].focus();
+        }
+      };
+
+  const verify_OTP = async () => {
+    const otp = inputs.join("");
+    const endpoint = "/verify-otp";
+    console.log(phone_no)
+    try {
+      const response = await axios.post(`${API_BASE_URL}${endpoint}`, {
+        otp,
+        phone: phone_no,
+      },{
+        withCredentials:true,
+      });
+
+      if (response.status === 200) {
+        setmessage("OTP verification successfull ✅");
+      } else {
+        setmessage("Invalid OTP ❌");
+      }
+    } catch (error) {
+      console.error(error);
+      setmessage("Something went wrong ⚠️");
+    }
+  };
+
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="bg-white p-6 rounded-2xl shadow-2xl w-[22rem] relative">
@@ -31,15 +82,22 @@ export default function Otpmodal({isOpen,onClose}) {
             .map((_, index) => (
               <input
                 key={index}
+                ref={(el) => (inputsRef.current[index] = el)}
                 type="text"
                 maxLength="1"
-                className="w-12 h-12 text-center text-lg font-semibold border-2 border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:bg-gray-100"
+                value={inputs[index]}
+                onChange={(e) => handleinputchange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                className="w-12 h-12 text-center text-lg font-semibold border-2 border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:bg-gray-100 text-gray-900 placeholder-gray-500"
               />
             ))}
         </div>
 
         {/* Verify OTP Button */}
-        <button className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white py-3 rounded-xl hover:opacity-90 transition font-semibold shadow-lg">
+        <button
+          className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white py-3 rounded-xl hover:opacity-90 transition font-semibold shadow-lg"
+          onClick={verify_OTP}
+        >
           Verify OTP
         </button>
 
@@ -51,6 +109,7 @@ export default function Otpmodal({isOpen,onClose}) {
           </button>
         </p>
       </div>
+      {message && <p>{message}</p>}
     </div>
   );
 }
