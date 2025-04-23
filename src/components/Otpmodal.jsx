@@ -1,54 +1,81 @@
-import React, { useState,useRef } from "react";
+import React, { useState, useRef } from "react";
 import { IoClose } from "react-icons/io5";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/Authcontext";
+
 
 export default function Otpmodal({ isOpen, onClose, phone_no }) {
   const [inputs, setinputs] = useState(Array(6).fill(""));
   const [message, setmessage] = useState("");
   const inputsRef = useRef([]);
-
+  const navigate = useNavigate();
+  const [loading, setloading] = useState(false);
+  const [success,setsuccess] = useState(false);
+  const {login} = useAuth();
   const API_BASE_URL =
     process.env.NODE_ENV === "production"
       ? process.env.REACT_APP_PRODUCTION_API_URL
       : process.env.REACT_APP_API_BASE_URL;
 
-      const handleinputchange = (index, value) => {
-        const newinputs = [...inputs];
-        if (/^\d?$/.test(value)) { // allow only single digit
-          newinputs[index] = value;
-          setinputs(newinputs);
-      
-          // Auto focus next box
-          if (value && index < inputsRef.current.length - 1) {
-            inputsRef.current[index + 1].focus();
-          }
-        }
-      };
-      
-      const handleKeyDown = (index, e) => {
-        if (e.key === "Backspace" && !inputs[index] && index > 0) {
-          inputsRef.current[index - 1].focus();
-        }
-      };
+  const handleinputchange = (index, value) => {
+    const newinputs = [...inputs];
+    if (/^\d?$/.test(value)) {
+      // allow only single digit
+      newinputs[index] = value;
+      setinputs(newinputs);
+
+      // Auto focus next box
+      if (value && index < inputsRef.current.length - 1) {
+        inputsRef.current[index + 1].focus();
+      }
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !inputs[index] && index > 0) {
+      inputsRef.current[index - 1].focus();
+    }
+  };
 
   const verify_OTP = async () => {
     const otp = inputs.join("");
     const endpoint = "/verify-otp";
-    console.log(phone_no)
+    //console.log(phone_no);
+    setloading(true);
+    
     try {
-      const response = await axios.post(`${API_BASE_URL}${endpoint}`, {
-        otp,
-        phone: phone_no,
-      },{
-        withCredentials:true,
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}${endpoint}`,
+        {
+          otp,
+          phone: phone_no,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
       if (response.status === 200) {
+
+        const {token,user} = response.data
+        login(token,user)
+
         setmessage("OTP verification successfull ✅");
+        setsuccess(true);
+
+        setTimeout(() => {
+          onClose();
+          navigate("/");
+          setloading(false);
+          setsuccess(false)
+        }, 3000);
       } else {
+        setloading(false)
         setmessage("Invalid OTP ❌");
       }
     } catch (error) {
+      setloading(false)
       console.error(error);
       setmessage("Something went wrong ⚠️");
     }
@@ -108,8 +135,26 @@ export default function Otpmodal({ isOpen, onClose, phone_no }) {
             Resend OTP
           </button>
         </p>
+
+        {loading && (
+          <div className="flex justify-center mt-4">
+            <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+
+        {/* Message Box */}
+        {message && (
+          <div
+            className={`mt-4 p-3 rounded-lg text-center font-medium ${
+              success
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {message}
+          </div>
+        )}
       </div>
-      {message && <p>{message}</p>}
     </div>
   );
 }

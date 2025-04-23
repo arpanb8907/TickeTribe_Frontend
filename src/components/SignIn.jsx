@@ -14,10 +14,14 @@ const SignIn = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null; // Hide when not active
 
-   
+   const closeAllModals = ()=>{
+    setphone_no_modal(false)
+    onClose() // close parent 
+   }
 
     const open_phone_no_input = ()=>{
         setphone_no_modal(true);
+        
     }
 
   return (
@@ -60,7 +64,7 @@ const SignIn = ({ isOpen, onClose }) => {
           Continue with Mobile Number
         </button>
 
-        <PhoneNumber isOpen={phone_no_modal} onClose={()=>setphone_no_modal(false)}></PhoneNumber>
+        <PhoneNumber isOpen={phone_no_modal} onClose={closeAllModals}></PhoneNumber>
 
         {/* Terms & Conditions */}
         <p className="mt-4 text-center text-xs text-gray-500">

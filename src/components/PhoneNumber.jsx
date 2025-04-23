@@ -8,6 +8,12 @@ export default function PhoneNumber({ isOpen, onClose }) {
   const [show_otp_modal, setshow_otp_modal] = useState(false);
   const [phone_no, setphone_no] = useState("");
 
+  const closeAllModals = () => {
+    setshow_otp_modal(false); // close OTP modal
+    onClose(); // call parent to close PhoneNumber modal
+  };
+  
+
   const API_BASE_URL =
     process.env.NODE_ENV === "production"
       ? process.env.REACT_APP_PRODUCTION_API_URL
@@ -54,7 +60,7 @@ export default function PhoneNumber({ isOpen, onClose }) {
       }
     }
     
-
+   
     setshow_otp_modal(true);
     //setphone_no("");
   };
@@ -99,7 +105,7 @@ export default function PhoneNumber({ isOpen, onClose }) {
 
         <Otpmodal
           isOpen={show_otp_modal}
-          onClose={() => setshow_otp_modal(false)}
+          onClose={closeAllModals}
           phone_no = {phone_no}
         />
       </div>
